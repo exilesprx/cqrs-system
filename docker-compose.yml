@@ -5,6 +5,8 @@ services:
   applications:
     image: tianon/true
 
+### Nginx Container #####################################
+
   nginx:
     build:
       context: ./nginx
@@ -23,6 +25,8 @@ services:
     networks:
       - frontend
       - backend
+
+### PHP Worker Container #####################################
 
   php-fpm:
     build:
@@ -59,6 +63,8 @@ services:
     networks:
       - backend
 
+### MySQL Container #####################################
+
   mysql:
     build:
       context: ./mysql
@@ -77,6 +83,36 @@ services:
       - "${MYSQL_PORT}:3306"
     networks:
       - backend
+
+### PHP Worker Container #####################################
+
+    php-worker:
+      build:
+        context: ./php-worker
+        dockerfile: "Dockerfile-${PHP_VERSION}"
+        args:
+          - INSTALL_PGSQL=${PHP_WORKER_INSTALL_PGSQL}
+      volumes_from:
+        - applications
+      depends_on:
+        - workspace
+      extra_hosts:
+        - "dockerhost:${DOCKER_HOST_IP}"
+      networks:
+        - backend
+
+### Redis Container #########################################
+
+    redis:
+      build: ./redis
+      volumes:
+        - ${DATA_SAVE_PATH}/redis:/data
+      ports:
+        - "${REDIS_PORT}:6379"
+      networks:
+        - backend
+
+### Networks #####################################
 
 networks:
   frontend:
