@@ -5,6 +5,34 @@ services:
   applications:
     image: tianon/true
 
+### Workspace Utilities Container ###########################
+
+  workspace:
+    build:
+      context: ./workspace
+      args:
+        - INSTALL_XDEBUG=${WORKSPACE_INSTALL_XDEBUG}
+        - INSTALL_MONGO=${WORKSPACE_INSTALL_MONGO}
+        - INSTALL_PHPREDIS=${WORKSPACE_INSTALL_PHPREDIS}
+        - INSTALL_NODE=${WORKSPACE_INSTALL_NODE}
+        - INSTALL_YARN=${WORKSPACE_INSTALL_YARN}
+        - PGID=${WORKSPACE_PGID}
+        - CHROME_DRIVER_VERSION=${WORKSPACE_CHROME_DRIVER_VERSION}
+        - NODE_VERSION=${WORKSPACE_NODE_VERSION}
+        - YARN_VERSION=${WORKSPACE_YARN_VERSION}
+        - TZ=${WORKSPACE_TIMEZONE}
+      dockerfile: "Dockerfile-${PHP_VERSION}"
+    volumes_from:
+      - applications
+    extra_hosts:
+      - "dockerhost:${DOCKER_HOST_IP}"
+    ports:
+      - "${WORKSPACE_SSH_PORT}:22"
+    tty: true
+    networks:
+      - frontend
+      - backend
+
 ### Nginx Container #####################################
 
   nginx:
@@ -91,6 +119,21 @@ services:
   php-worker:
     build:
       context: ./php-worker
+      dockerfile: "Dockerfile-${PHP_VERSION}"
+      args:
+        - INSTALL_PGSQL=${PHP_WORKER_INSTALL_PGSQL}
+    volumes_from:
+      - applications
+    extra_hosts:
+      - "dockerhost:${DOCKER_HOST_IP}"
+    networks:
+      - backend
+
+### Horizon Worker Container #####################################
+
+  horizon-worker:
+    build:
+      context: ./horizon-worker
       dockerfile: "Dockerfile-${PHP_VERSION}"
       args:
         - INSTALL_PGSQL=${PHP_WORKER_INSTALL_PGSQL}
