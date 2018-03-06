@@ -56,6 +56,13 @@ ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]
 #
     # -- Your awesome modifications go here -- #
 
+#####################################
+# MongoDB:
+#####################################
+
+# Install the mongodb extension
+RUN pecl install mongodb && \
+docker-php-ext-enable mongodb
 
 #
 #--------------------------------------------------------------------------
