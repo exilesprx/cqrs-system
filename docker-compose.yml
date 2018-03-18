@@ -120,6 +120,8 @@ services:
     build:
       context: ./horizon
       dockerfile: "Dockerfile-${PHP_VERSION}"
+      args:
+        - INSTALL_MONGO=${HORIZON_INSTALL_MONGO}
     volumes_from:
       - applications
     extra_hosts:
