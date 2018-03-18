@@ -114,35 +114,20 @@ services:
     networks:
       - backend
 
-### PHP Worker Container #####################################
-
-  # php-worker:
-  #   build:
-  #     context: ./php-worker
-  #     dockerfile: "Dockerfile-${PHP_VERSION}"
-  #     args:
-  #       - INSTALL_PGSQL=${PHP_WORKER_INSTALL_PGSQL}
-  #   volumes_from:
-  #     - applications
-  #   extra_hosts:
-  #     - "dockerhost:${DOCKER_HOST_IP}"
-  #   networks:
-  #     - backend
-
 ### Horizon Worker Container #####################################
 
   horizon:
     build:
       context: ./horizon
       dockerfile: "Dockerfile-${PHP_VERSION}"
-      args:
-        - INSTALL_PGSQL=${PHP_WORKER_INSTALL_PGSQL}
     volumes_from:
       - applications
     extra_hosts:
       - "dockerhost:${DOCKER_HOST_IP}"
     depends_on:
       - mysql
+      - redis
+      - nginx
     networks:
       - backend
 
