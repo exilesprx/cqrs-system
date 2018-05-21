@@ -54,7 +54,27 @@ services:
       - frontend
       - backend
 
-### PHP Worker Container #####################################
+### PHP Worker ############################################
+
+  php-worker:
+    build:
+      context: ./php-worker
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - INSTALL_MONGO=${PHP_WORKER_INSTALL_MONGO}
+      dockerfile: "Dockerfile-${PHP_VERSION}"
+    volumes_from:
+      - applications
+    volumes:
+      - ./php-worker/supervisord.d:/etc/supervisord.d
+    depends_on:
+      - workspace
+    extra_hosts:
+      - "dockerhost:${DOCKER_HOST_IP}"
+    networks:
+      - backend
+
+### PHP-FPM Container #####################################
 
   php-fpm:
     build:
@@ -116,22 +136,22 @@ services:
 
 ### Horizon Worker Container #####################################
 
-  horizon:
-    build:
-      context: ./horizon
-      dockerfile: "Dockerfile-${PHP_VERSION}"
-      args:
-        - INSTALL_MONGO=${HORIZON_INSTALL_MONGO}
-    volumes_from:
-      - applications
-    extra_hosts:
-      - "dockerhost:${DOCKER_HOST_IP}"
-    depends_on:
-      - mysql
-      - redis
-      - nginx
-    networks:
-      - backend
+  # horizon:
+  #   build:
+  #     context: ./horizon
+  #     dockerfile: "Dockerfile-${PHP_VERSION}"
+  #     args:
+  #       - INSTALL_MONGO=${HORIZON_INSTALL_MONGO}
+  #   volumes_from:
+  #     - applications
+  #   extra_hosts:
+  #     - "dockerhost:${DOCKER_HOST_IP}"
+  #   depends_on:
+  #     - mysql
+  #     - redis
+  #     - nginx
+  #   networks:
+  #     - backend
 
 ### Redis Container #########################################
 
@@ -141,6 +161,46 @@ services:
       - ${DATA_SAVE_PATH}/redis:/data
     ports:
       - "${REDIS_PORT}:6379"
+    networks:
+      - backend
+
+### Beanstalkd ###########################################
+
+  beanstalkd:
+    build: ./beanstalkd
+    ports:
+      - "${BEANSTALKD_HOST_PORT}:11300"
+    privileged: true
+    depends_on:
+      - php-fpm
+    networks:
+      - backend
+
+### Beanstalkd Console ###################################
+
+  beanstalkd-console:
+    build: ./beanstalkd-console
+    ports:
+      - "${BEANSTALKD_CONSOLE_HOST_PORT}:2080"
+    depends_on:
+      - beanstalkd
+    networks:
+      - backend
+
+### RabbitMQ #############################################
+
+  rabbitmq:
+    build: ./rabbitmq
+    ports:
+      - "${RABBITMQ_NODE_HOST_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_HTTP_HOST_PORT}:15672"
+      - "${RABBITMQ_MANAGEMENT_HTTPS_HOST_PORT}:15671"
+    privileged: true
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      - php-fpm
     networks:
       - backend
 

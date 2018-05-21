@@ -57,6 +57,17 @@ ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]
     # -- Your awesome modifications go here -- #
 
 
+#####################################
+# MongoDB:
+#####################################
+
+ARG INSTALL_MONGO=false
+RUN if [ ${INSTALL_MONGO} = true ]; then \
+    # Install the mongodb extension
+    pecl install mongodb && \
+    docker-php-ext-enable mongodb \
+;fi
+
 #
 #--------------------------------------------------------------------------
 # Final Touch
