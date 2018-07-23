@@ -26,6 +26,8 @@ services:
       - applications
     extra_hosts:
       - "dockerhost:${DOCKER_HOST_IP}"
+    environment:
+      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
     ports:
       - "${WORKSPACE_SSH_PORT}:22"
     tty: true
